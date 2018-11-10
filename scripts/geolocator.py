@@ -1,7 +1,8 @@
+# https://chrisalbon.com/python/data_wrangling/geolocate_a_city_or_country/
 from geopy.geocoders import Nominatim
-geolocator = Nominatim()
+geolocator = Nominatim(user_agent="myapp")
 import numpy as np
-
+import pandas as pd
 
 def geolocate(city=None, country=None):
     '''
@@ -43,3 +44,21 @@ geolocate(city='Austin', country='USA')
 geolocate(country='USA')
 
 '''
+print(geolocate(city='Delhi', country='India'))
+
+
+## read a csv file for column mapping
+
+df = pd.read_csv('/home/superadmin/Downloads/territories.csv')
+for index, row in df.iterrows() :
+    # print(row['Country'], row['TerritoryDescription'])
+    lat_lon = geolocate(city=row['Country'], country=row['TerritoryDescription'])
+    print(lat_lon, type(lat_lon))
+    if type(lat_lon) is tuple:
+        (lat,lon) = lat_lon
+        df['lat'] = lat
+        df['lon'] = lon
+    else :
+        df['lat'] = np.nan
+        df['lon'] = np.nan 
+print(df)

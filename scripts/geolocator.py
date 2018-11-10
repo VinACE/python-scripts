@@ -1,4 +1,5 @@
 # https://chrisalbon.com/python/data_wrangling/geolocate_a_city_or_country/
+# https://realpython.com/fast-flexible-pandas/
 from geopy.geocoders import Nominatim
 geolocator = Nominatim(user_agent="myapp")
 import numpy as np
@@ -50,15 +51,51 @@ print(geolocate(city='Delhi', country='India'))
 ## read a csv file for column mapping
 
 df = pd.read_csv('/home/superadmin/Downloads/territories.csv')
+'''
 for index, row in df.iterrows() :
     # print(row['Country'], row['TerritoryDescription'])
     lat_lon = geolocate(city=row['Country'], country=row['TerritoryDescription'])
     print(lat_lon, type(lat_lon))
+    lat_list = []
+    lon_list = []
     if type(lat_lon) is tuple:
         (lat,lon) = lat_lon
-        df['lat'] = lat
-        df['lon'] = lon
+        lat_list.append(lat)
+        lon_list.append(lon)
     else :
-        df['lat'] = np.nan
-        df['lon'] = np.nan 
+        lat_list.append(np.nan)
+        lat_list.append(np.nan) 
+    df['lat'] = lat_list
+    df['lon'] = lon_list
 print(df)
+df.to_csv('lat_lon.csv')
+'''
+def get_geocode(country, city):
+    """retruns the lat long of the given country and city."""    
+
+    lat_lon = geolocate(country=country, city=city)
+    if type(lat_lon) is tuple:
+        (lat,lon) = lat_lon
+        
+    else :
+        lat = np.nan
+        lon = np.nan 
+    return lat,lon
+
+def append_lat_lon_withapply(df):
+    df['lat_lon'] = df.apply(
+        lambda row: get_geocode(
+            country=row['Country'],
+            city = row['TerritoryDescription']),
+        axis=1)
+    print(df)
+
+append_lat_lon_withapply(df)
+df
+
+df['A'], df['B'] = df['lat_lon'].str.split(',', 1).str
+
+df['A'] = df['A'].str.replace('(','')
+df['B'] = df['B'].str.replace(')','')
+df
+df = df.to_csv('/home/superadmin/Downloads/territories_01.csv')
